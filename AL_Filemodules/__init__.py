@@ -114,7 +114,7 @@ class FileBackupManager():
         ## Cleanup will handle both successful and failed operations
         self.cleanup(exc_value)
         
-def _iterdir_re_args(pathobj: pathlib.Path|str, regexobj: re.Pattern, test: typing.Callable|None)-> typing.Tuple[pathlib.Path, re.Pattern, typing.Callable]:
+def _iterdir_re_args(pathobj: pathlib.Path|str, regexobj: re.Pattern|str, test: typing.Callable|None)-> typing.Tuple[pathlib.Path, re.Pattern, typing.Callable]:
     """ Parameter validator for iterdir_re and threaded_iterdir_re """
     try:
         pathobj = pathlib.Path(pathobj).resolve()
@@ -126,7 +126,13 @@ def _iterdir_re_args(pathobj: pathlib.Path|str, regexobj: re.Pattern, test: typi
     if not test: test = lambda x: True
     return pathobj, regexobj, test
 
-def iterdir_re(pathobj: pathlib.Path|str, regexobj: re.Pattern, test: typing.Callable|None = pathlib.Path.is_file, as_string: bool = False, recurse: bool = False, access_errors: bool = False)-> typing.Generator[pathlib.Path|str,None,None]:
+@typing.overload
+def iterdir_re(pathobj: pathlib.Path, regexobj: re.Pattern|str, test: typing.Callable = pathlib.Path.is_file, as_string: bool = False, recurse: bool = False, access_errors: bool = False)-> typing.Generator[pathlib.Path,None,None]: ...
+
+@typing.overload
+def iterdir_re(pathobj: pathlib.Path, regexobj: re.Pattern|str, test: typing.Callable = pathlib.Path.is_file, as_string: bool = True, recurse: bool = False, access_errors: bool = False)-> typing.Generator[str,None,None]: ...
+
+def iterdir_re(pathobj: pathlib.Path|str, regexobj: re.Pattern|str, test: typing.Callable|None = pathlib.Path.is_file, as_string: bool = False, recurse: bool = False, access_errors: bool = False)-> typing.Generator[pathlib.Path|str,None,None]:
     """ A generator to iterate through files in a directory which matches the given regex object
 
     pathobj should be a string or a file-like object that can be accepted and resolved by pathlib.
